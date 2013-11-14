@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.facebook.Request;
@@ -20,7 +21,7 @@ import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
-
+import com.facebook.FacebookRequestError;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -29,8 +30,10 @@ import java.util.ArrayList;
 /**
  * A placeholder fragment containing a simple view.
  */
-public  class FacebookFragment extends Fragment {
+public  class FacebookMeFragment extends Fragment {
+    private static final String TAG = "FacebookMeFragment";
     private TextView welcome;
+    private Button viewFriendsButton;
     private GraphUser graphUser;
     private UiLifecycleHelper uiHelper;
     public void onCreate(Bundle savedInstanceState){
@@ -39,60 +42,55 @@ public  class FacebookFragment extends Fragment {
         uiHelper.onCreate(savedInstanceState);
         makeFacebookRequst();
     }
-   /* public void makeFacebookRequst() {
-        Session session = Session.getActiveSession();
-        Log.d("TEST", "session.getState() = " + session.getState());
 
-        if (session.getState().isOpened()) {
-            Request.executeMeRequestAsync(session, new Request.GraphUserCallback() {
-
-                @Override
-                public void onCompleted(GraphUser user, Response response) {
-                    if (user != null) {
-                        graphUser = user;
-                        updateUI();
-                    }
-                }
-            });
-        }
-
-    }*/
  private void makeFacebookRequst(){
         // start Facebook Login
-        Session.openActiveSession(getActivity(), true, new Session.StatusCallback() {
+     final Session session = Session.getActiveSession();
+     if (session != null ){//&& session.isOpened()) {
 
-            // callback when session changes state
-            @Override
-            public void call(Session session, SessionState state, Exception exception) {
-                if (session.isOpened()) {
+         // make request to the /me API
+         // Get current logged in user information
+         Request meRequest = Request.newMeRequest(session, new Request.GraphUserCallback() {
 
-                    // make request to the /me API
-                    Request.executeMeRequestAsync(session, new Request.GraphUserCallback() {
-
-                        // callback after Graph API response with user object
-                        @Override
-                        public void onCompleted(GraphUser user, Response response) {
-                            if (user != null) {
-                                graphUser = user;
-                                updateUI();
-                               // welcome.setText("Hello " + user.getName() + "! does this show");
-                            }
-                        }
-                    });
-                }
-            }
-        });
+             @Override
+             public void onCompleted(GraphUser user, Response response) {
+                 FacebookRequestError error = response.getError();
+                 if (error != null) {
+                     Log.e(TAG, error.toString());
+                    // handleError(error, true);
+                 } else if (session == Session.getActiveSession()) {
+                     // Set the currentFBUser attribute
+                    // ((FriendSmashApplication)getApplication()).setCurrentFBUser(user);
+                     graphUser = user;
+                     updateUI();
+                 }
+             }
+         });
+        meRequest.executeAsync();
+     }
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         welcome = (TextView) rootView.findViewById(R.id.welcome_text);
+        viewFriendsButton = (Button)rootView.findViewById(R.id.get_friends_button);
+        viewFriendsButton.setVisibility(View.INVISIBLE);
+        viewFriendsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setClass(getActivity(), FriendsActivity.class);
+                startActivity(intent);
+
+            }
+        });
         return rootView;
     }
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
 /*
         view.findViewById(R.id.getMeBtn).setOnClickListener(this);
 
@@ -153,6 +151,7 @@ public  class FacebookFragment extends Fragment {
     private void updateUI() {
         if (graphUser != null) {
             Log.d("TEST", graphUser.getFirstName());
+            viewFriendsButton.setVisibility(View.VISIBLE);
             welcome.setText(buildUserInfoDisplay(graphUser));
         }
     }
