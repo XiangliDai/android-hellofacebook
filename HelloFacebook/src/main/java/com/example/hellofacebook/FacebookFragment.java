@@ -6,6 +6,7 @@ package com.example.hellofacebook;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +20,11 @@ import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -67,8 +73,9 @@ public  class FacebookFragment extends Fragment {
                         @Override
                         public void onCompleted(GraphUser user, Response response) {
                             if (user != null) {
-
-                                welcome.setText("Hello " + user.getName() + "!");
+                                graphUser = user;
+                                updateUI();
+                               // welcome.setText("Hello " + user.getName() + "! does this show");
                             }
                         }
                     });
@@ -146,8 +153,44 @@ public  class FacebookFragment extends Fragment {
     private void updateUI() {
         if (graphUser != null) {
             Log.d("TEST", graphUser.getFirstName());
+            welcome.setText(buildUserInfoDisplay(graphUser));
         }
     }
 
+    private String buildUserInfoDisplay(GraphUser user) {
+        StringBuilder userInfo = new StringBuilder("");
 
+        // Example: typed access (name)
+        // - no special permissions required
+        userInfo.append(String.format("Name: %s\n\n",
+                user.getName()));
+
+        // Example: partially typed access, to location field,
+        // name key (location)
+        // - requires user_location permission
+        userInfo.append(String.format("Location: %s\n\n",
+                user.getLocation().getProperty("name")));
+
+        // Example: access via property name (locale)
+        // - no special permissions required
+        userInfo.append(String.format("Locale: %s\n\n",
+                user.getProperty("locale")));
+
+        // Example: access via key for array (languages)
+        // - requires user_likes permission
+        JSONArray languages = (JSONArray)user.getProperty("languages");
+        if (languages.length() > 0) {
+            ArrayList<String> languageNames = new ArrayList<String> ();
+            for (int i=0; i < languages.length(); i++) {
+                JSONObject language = languages.optJSONObject(i);
+                // Add the language name to a list. Use JSON
+                // methods to get access to the name field.
+                languageNames.add(language.optString("name"));
+            }
+            userInfo.append(String.format("Languages: %s\n\n",
+                    languageNames.toString()));
+        }
+
+        return userInfo.toString();
+    }
 }
