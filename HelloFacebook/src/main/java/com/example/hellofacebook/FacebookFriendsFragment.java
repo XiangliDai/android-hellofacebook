@@ -48,7 +48,7 @@ public class FacebookFriendsFragment extends ListFragment {
     private void getFacebookFriends(){
         // start Facebook Login
         final Session session = Session.getActiveSession();
-        if (session != null && session.getState().isOpened()) {
+        if (session != null && session.isOpened()) {
             // make request to the /friends API
             Request friendsRequestRequest = Request.newMyFriendsRequest(session, new Request.GraphUserListCallback() {
                 @Override

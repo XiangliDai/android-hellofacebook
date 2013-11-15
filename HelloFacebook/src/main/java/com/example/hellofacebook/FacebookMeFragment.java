@@ -18,7 +18,6 @@ import com.facebook.FacebookRequestError;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
-import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
 
@@ -44,11 +43,7 @@ public  class FacebookMeFragment extends Fragment {
 
  private void getFacebookProfile(){
         // start Facebook Login
-     Session.openActiveSession(getActivity(), true, new Session.StatusCallback() {
-
-         // callback when session changes state
-         @Override
-         public void call(Session session, SessionState state, Exception exception) {
+    Session session = Session.getActiveSession();
              if (session.isOpened()) {
          // make request to the /me API
          // Get current logged in user information
@@ -69,8 +64,7 @@ public  class FacebookMeFragment extends Fragment {
          });
         meRequest.executeAsync();
      }
-    }
-     });
+
  }
 
     @Override
