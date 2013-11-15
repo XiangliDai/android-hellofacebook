@@ -2,9 +2,9 @@
 <resources>
 
     <string name="app_name">HelloFacebook</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_login_name">LoginFacebook</string>
     <string name="action_settings">Settings</string>
     <string name="app_id">363930458541</string>
     <string name="title_activity_friends">FriendsActivity</string>
-
+    <string name="get_started">To get started, log in using Facebook</string>
 </resources>
