@@ -7,4 +7,5 @@
     <string name="app_id">363930458541</string>
     <string name="title_activity_friends">FriendsActivity</string>
     <string name="get_started">To get started, log in using Facebook</string>
+    <string name="new_post">Post to facebook</string>
 </resources>

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.facebook.FacebookRequestError;
@@ -35,7 +36,7 @@ public class FacebookFriendsFragment extends ListFragment {
         View rootView = super.onCreateView(inflater, container, savedInstanceState);
         return rootView;
     }
-
+    @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
@@ -43,6 +44,13 @@ public class FacebookFriendsFragment extends ListFragment {
         mUsers = new ArrayList<GraphUser>();
         FriendsAdapter adapter = new FriendsAdapter(mUsers);
         setListAdapter(adapter);
+    }
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        //  Crime c = (Crime)(getListAdapter()).getItem(position);
+
+        GraphUser user = ((FriendsAdapter)getListAdapter()).getItem(position);
+        Log.d(TAG, user.getName().toString() + " is clicked");
     }
 
     private void getFacebookFriends(){

@@ -9,6 +9,9 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -37,7 +40,7 @@ public  class FacebookMeFragment extends Fragment {
     private UiLifecycleHelper uiHelper;
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-
+        setHasOptionsMenu(true);
         getFacebookProfile();
     }
 
@@ -86,6 +89,22 @@ public  class FacebookMeFragment extends Fragment {
         return rootView;
     }
 
+    @Override //Add action bar
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+        super.onCreateOptionsMenu(menu,inflater);
+        inflater.inflate(R.menu.main, menu);
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case R.id.menu_item_new_post:
+
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

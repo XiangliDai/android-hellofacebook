@@ -3,15 +3,15 @@ package com.example.hellofacebook;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.app.ActionBarActivity;
 
 import com.facebook.Session;
 
 /**
  * Created by xdai on 11/13/13.
  */
-public abstract class SingleFrameActivity extends ActionBarActivity {
+public abstract class SingleFrameActivity extends FragmentActivity {
 
 
     public void onCreate(Bundle savedInstanceState) {
@@ -34,10 +34,7 @@ public abstract class SingleFrameActivity extends ActionBarActivity {
         super.onActivityResult(requestCode, resultCode, data);
         Session.getActiveSession()
                 .onActivityResult(this, requestCode, resultCode, data);
-        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-        if(requestCode == 64206) //Bad hacking
-            if(fragment!=null)
-                fragment.onActivityResult(requestCode, resultCode, data);
+
     }
 
     protected abstract Fragment createFragment();
