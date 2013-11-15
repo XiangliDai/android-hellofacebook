@@ -15,6 +15,7 @@ import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.model.GraphUser;
+import com.facebook.widget.ProfilePictureView;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,6 +28,7 @@ import java.util.List;
 public class FacebookFriendsFragment extends ListFragment {
     private static final String TAG = "FacebookFriendsFragment";
     private ArrayList<GraphUser> mUsers;
+    private ProfilePictureView profilePictureView;
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -34,6 +36,7 @@ public class FacebookFriendsFragment extends ListFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = super.onCreateView(inflater, container, savedInstanceState);
+
         return rootView;
     }
     @Override
@@ -47,8 +50,6 @@ public class FacebookFriendsFragment extends ListFragment {
     }
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        //  Crime c = (Crime)(getListAdapter()).getItem(position);
-
         GraphUser user = ((FriendsAdapter)getListAdapter()).getItem(position);
         Log.d(TAG, user.getName().toString() + " is clicked");
     }
@@ -86,12 +87,17 @@ public class FacebookFriendsFragment extends ListFragment {
                 convertView = getActivity().getLayoutInflater().inflate(R.layout.friend_list_item, null);
 
             GraphUser user = getItem(position);
-            TextView nameText = (TextView)convertView.findViewById(R.id.text_friend_name);
+            profilePictureView = (ProfilePictureView) convertView.findViewById(R.id.friend_profile_pic);
+
+            profilePictureView.setCropped(true);
+            profilePictureView.setPresetSize(profilePictureView.SMALL);
+            profilePictureView.setProfileId(user.getId());
+            TextView nameText = (TextView)convertView.findViewById(R.id.friend_name);
             nameText.setText(user.getName());
             //try to get Zodiac for fun but API doens't return birthday!!
             //actually only id and name are returned
             if(user.getBirthday() != null){
-                TextView zodiacText = (TextView)convertView.findViewById(R.id.text_friend_zodiac);
+                TextView zodiacText = (TextView)convertView.findViewById(R.id.friend_name);
                 zodiacText.setText(getZodiac(new Date(user.getBirthday())));
             }
             return convertView;
