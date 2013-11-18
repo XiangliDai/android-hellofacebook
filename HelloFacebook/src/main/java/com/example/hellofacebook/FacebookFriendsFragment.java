@@ -1,9 +1,12 @@
 package com.example.hellofacebook;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -37,23 +40,40 @@ public class FacebookFriendsFragment extends ListFragment {
                              Bundle savedInstanceState) {
         View rootView = super.onCreateView(inflater, container, savedInstanceState);
 
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
+            if(NavUtils.getParentActivityName(getActivity()) != null)
+                getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         return rootView;
     }
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        setHasOptionsMenu(true);
         getFacebookFriends();
         mUsers = new ArrayList<GraphUser>();
         FriendsAdapter adapter = new FriendsAdapter(mUsers);
         setListAdapter(adapter);
     }
+
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         GraphUser user = ((FriendsAdapter)getListAdapter()).getItem(position);
         Log.d(TAG, user.getName().toString() + " is clicked");
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                if(NavUtils.getParentActivityName(getActivity()) != null)
+                    NavUtils.navigateUpFromSameTask(getActivity());
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
     private void getFacebookFriends(){
         // start Facebook Login
         final Session session = Session.getActiveSession();

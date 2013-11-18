@@ -4,9 +4,11 @@ package com.example.hellofacebook;
  * Created by xdai on 11/13/13.
  */
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -45,8 +47,11 @@ public  class FacebookMeFragment extends Fragment {
     private TextView welcome;
     private Button viewFriendsButton;
     private GraphUser graphUser;
+    private static final int REQUEST_PUBLISHER = 0;
+    private static final String DIALOG_PUBLISHER="Post";
     private static final List<String> PERMISSIONS = Arrays.asList("publish_actions");
     private static final String PENDING_PUBLISH_KEY = "pendingPublishReauthorization";
+
     private boolean pendingPublishReauthorization = false;
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -61,7 +66,6 @@ public  class FacebookMeFragment extends Fragment {
          // Get current logged in user information
 
          Request meRequest = Request.newMeRequest(session, new Request.GraphUserCallback() {
-
              @Override
              public void onCompleted(GraphUser user, Response response) {
                  FacebookRequestError error = response.getError();
@@ -83,6 +87,7 @@ public  class FacebookMeFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         welcome = (TextView) rootView.findViewById(R.id.welcome_text);
         profilePictureView = (ProfilePictureView) rootView.findViewById(R.id.profile_pic);
@@ -111,7 +116,7 @@ public  class FacebookMeFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()){
             case R.id.menu_item_new_post:
-                //postToFacebook();
+                showPublisherDialog();
                 return true;
 
             default:
@@ -120,81 +125,32 @@ public  class FacebookMeFragment extends Fragment {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(resultCode != Activity.RESULT_OK) return;
+        if(requestCode == REQUEST_PUBLISHER){
+            String name = data.getStringExtra(FacebookPublisherFragment.EXTRA_NAME);
+            String caption = data.getStringExtra(FacebookPublisherFragment.EXTRA_CAPTION);
+            String description = data.getStringExtra(FacebookPublisherFragment.EXTRA_DESC);
+            Log.d(TAG, name);
+            Log.d(TAG, caption);
+            postToFacebook(name, caption, description);
+        }
 
     }
 
-    private void postToFacebook() {
 
-       Session session = Session.getActiveSession();
+    private void showPublisherDialog(){
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        // Create and show the dialog.
+        FacebookPublisherFragment publisherFragment = FacebookPublisherFragment.newInstance(DIALOG_PUBLISHER);
+        publisherFragment.setTargetFragment(FacebookMeFragment.this, REQUEST_PUBLISHER);
+        publisherFragment.show(fm, DIALOG_PUBLISHER);
 
-       if (session != null && session.isOpened()){
-
-                // Check for publish permissions
-        List<String> permissions = session.getPermissions();
-        if (!isSubsetOf(PERMISSIONS, permissions)) {
-            pendingPublishReauthorization = true;
-            Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, PERMISSIONS);
-            session.requestNewPublishPermissions(newPermissionsRequest);
-            return;
-        }
-
-        Bundle postParams = new Bundle();
-        postParams.putString("name", "Facebook SDK for Android");
-        postParams.putString("caption", "Build great social apps and get more installs.");
-        postParams.putString("description", "The Facebook SDK for Android makes it easier and faster to develop Facebook integrated Android apps.");
-        postParams.putString("link", "https://developers.facebook.com/android");
-        postParams.putString("picture", "https://raw.github.com/fbsamples/ios-3.x-howtos/master/Images/iossdk_logo.png");
-
-        Request.Callback callback= new Request.Callback() {
-            public void onCompleted(Response response) {
-                JSONObject graphResponse = response
-                        .getGraphObject()
-                        .getInnerJSONObject();
-                String postId = null;
-                try {
-                    postId = graphResponse.getString("id");
-                } catch (JSONException e) {
-                    Log.i(TAG,
-                            "JSON error "+ e.getMessage());
-                }
-                FacebookRequestError error = response.getError();
-                if (error != null) {
-                    Toast.makeText(getActivity()
-                            .getApplicationContext(),
-                            error.getErrorMessage(),
-                            Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getActivity()
-                            .getApplicationContext(),
-                            postId,
-                            Toast.LENGTH_LONG).show();
-                }
-            }
-        };
-
-        Request request = new Request(session, "me/feed", postParams,HttpMethod.POST, callback);
-
-        RequestAsyncTask task = new RequestAsyncTask(request);
-        task.execute();
-      }
-
-
-    }
-
-    private boolean isSubsetOf(Collection<String> subset, Collection<String> superset) {
-        for (String string : subset) {
-            if (!superset.contains(string)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private void updateUI() {
         if (graphUser != null) {
-            Log.d("TEST", graphUser.getFirstName());
+            Log.d(TAG, graphUser.getFirstName());
             viewFriendsButton.setVisibility(View.VISIBLE);
             welcome.setText(buildUserInfoDisplay(graphUser));
 
@@ -238,4 +194,73 @@ public  class FacebookMeFragment extends Fragment {
 
         return userInfo.toString();
     }
+
+
+    private void postToFacebook(String name, String caption, String description) {
+
+        Session session = Session.getActiveSession();
+
+        if (session != null && session.isOpened()){
+
+            // Check for publish permissions
+            List<String> permissions = session.getPermissions();
+            if (!isSubsetOf(PERMISSIONS, permissions)) {
+                pendingPublishReauthorization = true;
+                Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, PERMISSIONS);
+                session.requestNewPublishPermissions(newPermissionsRequest);
+                return;
+            }
+
+            Bundle postParams = new Bundle();
+            postParams.putString("name", name);
+            postParams.putString("caption", caption);
+            postParams.putString("description", description);
+            postParams.putString("link", "https://developers.facebook.com/android");
+            postParams.putString("picture", "https://raw.github.com/fbsamples/ios-3.x-howtos/master/Images/iossdk_logo.png");
+
+            Request.Callback callback= new Request.Callback() {
+                public void onCompleted(Response response) {
+                    JSONObject graphResponse = response
+                            .getGraphObject()
+                            .getInnerJSONObject();
+                    String postId = null;
+                    try {
+                        postId = graphResponse.getString("id");
+                    }
+                    catch (JSONException e) {
+                        Log.e(TAG, "JSON error " + e.getMessage());
+                    }
+                    FacebookRequestError error = response.getError();
+                    if (error != null) {
+                        Toast.makeText(getActivity().getApplicationContext(),
+                                error.getErrorMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        Toast.makeText(getActivity().getApplicationContext(),
+                                postId,
+                                Toast.LENGTH_LONG).show();
+                    }
+
+                }
+            };
+
+            Request request = new Request(session, "me/feed", postParams, HttpMethod.POST, callback);
+
+            RequestAsyncTask task = new RequestAsyncTask(request);
+            task.execute();
+        }
+
+    }
+
+
+    private boolean isSubsetOf(Collection<String> subset, Collection<String> superset) {
+        for (String string : subset) {
+            if (!superset.contains(string)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }
