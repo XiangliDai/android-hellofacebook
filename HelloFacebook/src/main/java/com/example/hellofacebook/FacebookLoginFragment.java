@@ -73,6 +73,7 @@ public class FacebookLoginFragment extends Fragment {
            // If the session state is open:
             if (state.isOpened()) {
                 Log.i(TAG, "state opended");
+                CredentialManager.get(getActivity()).saveCredentials();
                 Intent i = new Intent(getActivity(), MainActivity.class);
                 startActivity(i);
             }

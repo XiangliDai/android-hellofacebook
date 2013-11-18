@@ -21,22 +21,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.FacebookRequestError;
-import com.facebook.HttpMethod;
 import com.facebook.Request;
-import com.facebook.RequestAsyncTask;
 import com.facebook.Response;
 import com.facebook.Session;
+import com.facebook.android.Facebook;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.ProfilePictureView;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -49,14 +44,14 @@ public  class FacebookMeFragment extends Fragment {
     private GraphUser graphUser;
     private static final int REQUEST_PUBLISHER = 0;
     private static final String DIALOG_PUBLISHER="Post";
-    private static final List<String> PERMISSIONS = Arrays.asList("publish_actions");
-    private static final String PENDING_PUBLISH_KEY = "pendingPublishReauthorization";
 
-    private boolean pendingPublishReauthorization = false;
+    private Facebook mFacebook;
+
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         getFacebookProfile();
+
     }
 
      private void getFacebookProfile(){
@@ -128,14 +123,10 @@ public  class FacebookMeFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         if(resultCode != Activity.RESULT_OK) return;
         if(requestCode == REQUEST_PUBLISHER){
-            String name = data.getStringExtra(FacebookPublisherFragment.EXTRA_NAME);
-            String caption = data.getStringExtra(FacebookPublisherFragment.EXTRA_CAPTION);
-            String description = data.getStringExtra(FacebookPublisherFragment.EXTRA_DESC);
-            Log.d(TAG, name);
-            Log.d(TAG, caption);
-            postToFacebook(name, caption, description);
+            String message = data.getStringExtra(FacebookPublisherFragment.EXTRA_MESSAGE);
+            Log.d(TAG, message);
+            postToWall(message);
         }
-
     }
 
 
@@ -145,7 +136,6 @@ public  class FacebookMeFragment extends Fragment {
         FacebookPublisherFragment publisherFragment = FacebookPublisherFragment.newInstance(DIALOG_PUBLISHER);
         publisherFragment.setTargetFragment(FacebookMeFragment.this, REQUEST_PUBLISHER);
         publisherFragment.show(fm, DIALOG_PUBLISHER);
-
     }
 
     private void updateUI() {
@@ -153,7 +143,6 @@ public  class FacebookMeFragment extends Fragment {
             Log.d(TAG, graphUser.getFirstName());
             viewFriendsButton.setVisibility(View.VISIBLE);
             welcome.setText(buildUserInfoDisplay(graphUser));
-
         }
     }
 
@@ -195,72 +184,28 @@ public  class FacebookMeFragment extends Fragment {
         return userInfo.toString();
     }
 
-
-    private void postToFacebook(String name, String caption, String description) {
-
+    public void postToWall(String message){
         Session session = Session.getActiveSession();
-
-        if (session != null && session.isOpened()){
-
-            // Check for publish permissions
-            List<String> permissions = session.getPermissions();
-            if (!isSubsetOf(PERMISSIONS, permissions)) {
-                pendingPublishReauthorization = true;
-                Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, PERMISSIONS);
-                session.requestNewPublishPermissions(newPermissionsRequest);
-                return;
-            }
-
-            Bundle postParams = new Bundle();
-            postParams.putString("name", name);
-            postParams.putString("caption", caption);
-            postParams.putString("description", description);
-            postParams.putString("link", "https://developers.facebook.com/android");
-            postParams.putString("picture", "https://raw.github.com/fbsamples/ios-3.x-howtos/master/Images/iossdk_logo.png");
-
-            Request.Callback callback= new Request.Callback() {
-                public void onCompleted(Response response) {
-                    JSONObject graphResponse = response
-                            .getGraphObject()
-                            .getInnerJSONObject();
-                    String postId = null;
-                    try {
-                        postId = graphResponse.getString("id");
-                    }
-                    catch (JSONException e) {
-                        Log.e(TAG, "JSON error " + e.getMessage());
-                    }
-                    FacebookRequestError error = response.getError();
-                    if (error != null) {
-                        Toast.makeText(getActivity().getApplicationContext(),
-                                error.getErrorMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        Toast.makeText(getActivity().getApplicationContext(),
-                                postId,
-                                Toast.LENGTH_LONG).show();
-                    }
-
+        if(session!=null && session.isOpened()){
+        Request postRequest = Request.newStatusUpdateRequest(session, message, new Request.Callback() {
+            @Override
+            public void onCompleted(Response response) {
+                FacebookRequestError error = response.getError();
+                if (error != null) {
+                    Log.e(TAG, error.toString());
+                    showToast("Failed to post");
+                } else {
+                    showToast(response.toString());
                 }
-            };
-
-            Request request = new Request(session, "me/feed", postParams, HttpMethod.POST, callback);
-
-            RequestAsyncTask task = new RequestAsyncTask(request);
-            task.execute();
-        }
-
-    }
-
-
-    private boolean isSubsetOf(Collection<String> subset, Collection<String> superset) {
-        for (String string : subset) {
-            if (!superset.contains(string)) {
-                return false;
             }
+        });
+            postRequest.executeAsync();
         }
-        return true;
     }
+
+    private void showToast(String message){
+        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+    }
+
 
 }

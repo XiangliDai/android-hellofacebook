@@ -14,13 +14,9 @@ import android.widget.EditText;
  * Created by xdai on 11/15/13.
  */
 public class FacebookPublisherFragment extends DialogFragment {
-    public static String EXTRA_NAME = "name";
-    public static String EXTRA_CAPTION = "caption";
-    public static String EXTRA_DESC = "desc";
+    public static String EXTRA_MESSAGE = "test message";
     public static String EXTRA_TITLE = "title";
-    private EditText nameText ;
-    private EditText captionText;
-    private EditText descText;
+    private EditText messageText ;
 
 
     private static final String TAG = "FacebookPublisherFragment";
@@ -36,13 +32,8 @@ public class FacebookPublisherFragment extends DialogFragment {
 
         View rootView = getActivity().getLayoutInflater().inflate(R.layout.facebook_publisher_fragment, null) ;
 
-        nameText = (EditText)rootView.findViewById(R.id.publisher_name);
-        captionText = (EditText)rootView.findViewById(R.id.publisher_caption);
-        descText = (EditText)rootView.findViewById(R.id.publisher_description);
-        nameText.setText("Facebook SDK for Android");
-        captionText.setText("Build great social apps and get more installs.");
-        descText.setText("The Facebook SDK for Android makes it easier and faster to develop Facebook integrated Android apps.");
-
+        messageText = (EditText)rootView.findViewById(R.id.publisher_message);
+        messageText.setText(EXTRA_MESSAGE);
         return new AlertDialog.Builder(getActivity())
                 .setView(rootView)
                 .setTitle((CharSequence) getArguments().getSerializable(EXTRA_TITLE))
@@ -69,9 +60,7 @@ public class FacebookPublisherFragment extends DialogFragment {
         if(getTargetFragment() == null) return;
 
         Intent i = new Intent();
-        i.putExtra(EXTRA_NAME, nameText.getText().toString());
-        i.putExtra(EXTRA_CAPTION, captionText.getText().toString());
-        i.putExtra(EXTRA_DESC, descText.getText().toString());
+        i.putExtra(EXTRA_MESSAGE, messageText.getText().toString());
         getTargetFragment().onActivityResult(getTargetRequestCode(), resultCode, i);
 
     }
