@@ -46,9 +46,16 @@ public class ProfileUtil {
             if(user.getProperty("work") != null){
                 JSONArray works = (JSONArray)user.getProperty("work");
                 JSONObject work = works.optJSONObject(0);
+                userInfo.append(String.format("Work: \n"));
+                if(work.has("employer")){
                 JSONObject employer = (JSONObject)work.get("employer");
-                JSONObject position = (JSONObject)work.get("position");
-                userInfo.append(String.format("Work: %s at %s\n\n",  position.get("name") ,employer.get("name")));
+                    userInfo.append(String.format("  at: %s\n",  employer.get("name")));
+                }
+                if(work.has("position")){
+                    JSONObject position = (JSONObject)work.get("position");
+                    userInfo.append(String.format("  as: %s\n",  position.get("name")));
+                }
+                userInfo.append(String.format("\n\n"));
             }
             // Example: partially typed access, to location field,
             // name key (location)

@@ -28,7 +28,7 @@
             android:label="@string/title_activity_friends" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.hellofacebook.LoginActivity" />
+                android:value="com.example.hellofacebook.ProfileActivity" />
         </activity>
         <activity
             android:name="com.example.hellofacebook.LoginActivity"

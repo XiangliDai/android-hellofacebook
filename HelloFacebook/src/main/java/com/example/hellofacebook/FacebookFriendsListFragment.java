@@ -80,7 +80,7 @@ public class FacebookFriendsListFragment extends ListFragment {
         GraphUser user = ((FriendsAdapter)getListAdapter()).getItem(position);
         Intent i = new Intent(getActivity(), ProfileActivity.class);
 
-        i.putExtra(FacebookFriendProfileFragment.EXTRA_USER_ID, user.getId());
+        i.putExtra(FacebookProfileFragment.EXTRA_USER_ID, user.getId());
         startActivity(i);
         Log.d(TAG, user.getId().toString() + " is clicked");
     }
