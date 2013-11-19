@@ -21,81 +21,69 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.FacebookRequestError;
+import com.facebook.HttpMethod;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.android.Facebook;
+import com.facebook.model.GraphObject;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.ProfilePictureView;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public  class FacebookMeFragment extends Fragment {
-    private static final String TAG = "FacebookMeFragment";
+public  class FacebookProfileFragment extends Fragment {
+    private static final String TAG = "FacebookProfileFragment";
     private ProfilePictureView profilePictureView;
-    private TextView welcome;
+    private TextView userProfile;
     private Button viewFriendsButton;
     private GraphUser graphUser;
     private static final int REQUEST_PUBLISHER = 0;
-    private static final String DIALOG_PUBLISHER="Post";
-
+    private static final String DIALOG_PUBLISHER = "Post";
+    public static final String EXTRA_USER_ID = "user_id";
+    private String userId;
     private Facebook mFacebook;
 
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        getFacebookProfile();
+        userId  = (String)getArguments().getSerializable(EXTRA_USER_ID);
+        if(userId == null)
+            getFacebookMeProfile();
+        else
+            getFacebookProfileForUser();
 
     }
 
-     private void getFacebookProfile(){
-        Session session = Session.getActiveSession();
-             if (session.isOpened()) {
-         // make request to the /me API
-         // Get current logged in user information
+    public static FacebookProfileFragment newInstance(String userId){
+        Bundle args = new Bundle();
+        args.putSerializable(EXTRA_USER_ID, userId);
+        FacebookProfileFragment facebookProfileFragment = new FacebookProfileFragment();
+        facebookProfileFragment.setArguments(args);
 
-         Request meRequest = Request.newMeRequest(session, new Request.GraphUserCallback() {
-             @Override
-             public void onCompleted(GraphUser user, Response response) {
-                 FacebookRequestError error = response.getError();
-                 if (error != null) {
-                     Log.e(TAG, error.toString());
-                 }
-                 else {
-                     graphUser = user;
-                     updateUI();
-                     profilePictureView.setProfileId(graphUser.getId());
-
-                 }
-             }
-         });
-        meRequest.executeAsync();
-     }
-
- }
+        return facebookProfileFragment;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        welcome = (TextView) rootView.findViewById(R.id.welcome_text);
+        View rootView = inflater.inflate(R.layout.profile_fragment, container, false);
+        userProfile = (TextView) rootView.findViewById(R.id.user_profile);
         profilePictureView = (ProfilePictureView) rootView.findViewById(R.id.profile_pic);
         profilePictureView.setCropped(true);
+        profilePictureView.setVisibility(View.INVISIBLE);
         viewFriendsButton = (Button)rootView.findViewById(R.id.get_friends_button);
         viewFriendsButton.setVisibility(View.INVISIBLE);
         viewFriendsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent();
-                intent.setClass(getActivity(), FriendsActivity.class);
+                intent.setClass(getActivity(), FriendsListActivity.class);
+                intent.putExtra(EXTRA_USER_ID, userId);
                 startActivity(intent);
-
             }
         });
         return rootView;
@@ -129,59 +117,74 @@ public  class FacebookMeFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onPause(){
+        super.onPause();
+        graphUser = null;
+    }
+
+    private void getFacebookMeProfile(){
+        Session session = Session.getActiveSession();
+        if (session.isOpened()) {
+         // make request to the /me API to get current logged in user information
+         Request meRequest = Request.newMeRequest(session, new Request.GraphUserCallback() {
+             @Override
+             public void onCompleted(GraphUser user, Response response) {
+                 FacebookRequestError error = response.getError();
+                 if (error != null) {
+                     Log.e(TAG, error.toString());
+                 }
+                 else {
+                     graphUser = user;
+                     updateUI();
+                 }
+             }
+         });
+            meRequest.executeAsync();
+        }
+    }
+
+    private void getFacebookProfileForUser(){
+        Session session = Session.getActiveSession();
+        if (session.isOpened()) {
+            /* make the API call*/
+            new Request(
+                    session,
+                    "/"+ userId,
+                    null,
+                    HttpMethod.GET,
+                    new Request.Callback() {
+                        public void onCompleted(Response response) {
+                            JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
+                            graphUser = convertJSONObjectToGraphUser(graphResponse);
+                            updateUI();
+                        }
+                    }
+            ).executeAsync();
+        }
+    }
+
+    private GraphUser convertJSONObjectToGraphUser(JSONObject graphResponse) {
+        GraphUser user = GraphObject.Factory.create(graphResponse, GraphUser.class);
+        return user;
+    }
 
     private void showPublisherDialog(){
         FragmentManager fm = getActivity().getSupportFragmentManager();
         // Create and show the dialog.
         FacebookPublisherFragment publisherFragment = FacebookPublisherFragment.newInstance(DIALOG_PUBLISHER);
-        publisherFragment.setTargetFragment(FacebookMeFragment.this, REQUEST_PUBLISHER);
+        publisherFragment.setTargetFragment(FacebookProfileFragment.this, REQUEST_PUBLISHER);
         publisherFragment.show(fm, DIALOG_PUBLISHER);
     }
 
     private void updateUI() {
         if (graphUser != null) {
+            profilePictureView.setProfileId(graphUser.getId());
+            profilePictureView.setVisibility(View.VISIBLE);
             Log.d(TAG, graphUser.getFirstName());
             viewFriendsButton.setVisibility(View.VISIBLE);
-            welcome.setText(buildUserInfoDisplay(graphUser));
+            userProfile.setText(new ProfileUtil().buildUserInfoDisplay(graphUser));
         }
-    }
-
-    //TODO: create a model of this
-    private String buildUserInfoDisplay(GraphUser user) {
-        StringBuilder userInfo = new StringBuilder("");
-
-        // Example: typed access (name)
-        // - no special permissions required
-        userInfo.append(String.format("Name: %s\n\n",
-                user.getName()));
-
-        // Example: partially typed access, to location field,
-        // name key (location)
-        // - requires user_location permission
-        userInfo.append(String.format("Location: %s\n\n",
-                user.getLocation().getProperty("name")));
-
-        // Example: access via property name (locale)
-        // - no special permissions required
-        userInfo.append(String.format("Locale: %s\n\n",
-                user.getProperty("locale")));
-
-        // Example: access via key for array (languages)
-        // - requires user_likes permission
-        JSONArray languages = (JSONArray)user.getProperty("languages");
-        if (languages.length() > 0) {
-            ArrayList<String> languageNames = new ArrayList<String> ();
-            for (int i=0; i < languages.length(); i++) {
-                JSONObject language = languages.optJSONObject(i);
-                // Add the language name to a list. Use JSON
-                // methods to get access to the name field.
-                languageNames.add(language.optString("name"));
-            }
-            userInfo.append(String.format("Languages: %s\n\n",
-                    languageNames.toString()));
-        }
-
-        return userInfo.toString();
     }
 
     public void postToWall(String message){
@@ -206,6 +209,5 @@ public  class FacebookMeFragment extends Fragment {
     private void showToast(String message){
         Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
     }
-
 
 }

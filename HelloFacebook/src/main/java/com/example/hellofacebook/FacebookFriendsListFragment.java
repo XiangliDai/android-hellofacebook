@@ -1,5 +1,6 @@
 package com.example.hellofacebook;
 
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -14,24 +15,28 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.facebook.FacebookRequestError;
+import com.facebook.HttpMethod;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.ProfilePictureView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by xdai on 11/13/13.
  */
-public class FacebookFriendsFragment extends ListFragment {
-    private static final String TAG = "FacebookFriendsFragment";
+public class FacebookFriendsListFragment extends ListFragment {
+    private static final String TAG = "FacebookFriendsListFragment";
     private ArrayList<GraphUser> mUsers;
     private ProfilePictureView profilePictureView;
+    private String userId;
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -51,16 +56,33 @@ public class FacebookFriendsFragment extends ListFragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         setHasOptionsMenu(true);
-        getFacebookFriends();
+        userId  = (String)getArguments().getSerializable(FacebookProfileFragment.EXTRA_USER_ID);
+        if(userId == null)
+            getFacebookFriends();
+        else
+            getFacebookFriendsForUser();
         mUsers = new ArrayList<GraphUser>();
         FriendsAdapter adapter = new FriendsAdapter(mUsers);
         setListAdapter(adapter);
     }
 
+    public static FacebookFriendsListFragment newInstance(String userId){
+        Bundle args = new Bundle();
+        args.putSerializable(FacebookProfileFragment.EXTRA_USER_ID, userId);
+        FacebookFriendsListFragment facebookFriendsListFragment = new FacebookFriendsListFragment();
+        facebookFriendsListFragment.setArguments(args);
+
+        return facebookFriendsListFragment;
+    }
+
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         GraphUser user = ((FriendsAdapter)getListAdapter()).getItem(position);
-        Log.d(TAG, user.getName().toString() + " is clicked");
+        Intent i = new Intent(getActivity(), ProfileActivity.class);
+
+        i.putExtra(FacebookFriendProfileFragment.EXTRA_USER_ID, user.getId());
+        startActivity(i);
+        Log.d(TAG, user.getId().toString() + " is clicked");
     }
 
     @Override
@@ -74,6 +96,14 @@ public class FacebookFriendsFragment extends ListFragment {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        mUsers = null;
+    }
+
     private void getFacebookFriends(){
         // start Facebook Login
         final Session session = Session.getActiveSession();
@@ -96,6 +126,44 @@ public class FacebookFriendsFragment extends ListFragment {
         }
     }
 
+
+    private void getFacebookFriendsForUser(){
+        Session session = Session.getActiveSession();
+        if (session.isOpened()) {
+            /* make the API call*/
+            new Request(
+                    session,
+                    "me/mutualfriends/"+ userId,
+                    null,
+                    HttpMethod.GET,
+                    new Request.Callback() {
+                        public void onCompleted(Response response) {
+                            JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
+                            try {
+                                JSONArray users = (JSONArray)graphResponse.get("data");
+                                if (users.length() > 0) {
+                                //    ArrayList<GraphUser> graphUsers = new ArrayList<GraphUser> ();
+                                    for (int i=0; i < users.length(); i++) {
+                                        JSONObject user = users.optJSONObject(i);
+                                        // Add the language name to a list. Use JSON
+                                        // methods to get access to the name field.
+                                      // GraphUser graphUser =  new ProfileUtil().convertJSONObjectToGraphUser(user);
+                                        mUsers.add(new ProfileUtil().convertJSONObjectToGraphUser(user));
+                                    }
+                                  //  mUsers = graphUsers;
+                                    FriendsAdapter adapter = (FriendsAdapter)getListAdapter();
+                                    adapter.notifyDataSetChanged();
+                                }
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+            ).executeAsync();
+        }
+    }
+
     private class FriendsAdapter extends ArrayAdapter<GraphUser>{
 
         public FriendsAdapter(ArrayList<GraphUser> users){
@@ -114,42 +182,9 @@ public class FacebookFriendsFragment extends ListFragment {
             profilePictureView.setProfileId(user.getId());
             TextView nameText = (TextView)convertView.findViewById(R.id.friend_name);
             nameText.setText(user.getName());
-            //try to get Zodiac for fun but API doens't return birthday!!
-            //actually only id and name are returned
-            if(user.getBirthday() != null){
-                TextView zodiacText = (TextView)convertView.findViewById(R.id.friend_name);
-                zodiacText.setText(getZodiac(new Date(user.getBirthday())));
-            }
+
             return convertView;
         }
     }
 
-    private String getZodiac(Date date){
-        HashMap<String, ArrayList<String>> dictionary = new HashMap<String, ArrayList<String>>();
-        String[] signs = {"Aries", "Taurus","Gemini","Cancer", "Leo","Virgo","Libra","Scorpius",
-               "Sagittarius", "Capricorn","Aquarius", "Pisces"};
-        String[][] dates = {
-                {"12 March", "18 April"},
-                {"19 April","13 May"},
-                {"14 May","21 June"},
-                {"20 June", "20 July"},
-                {"21 July","9 August"},
-                {"10 August","15 September"},
-                {"16 September", "30 October"},
-                {"31 October","22 November"},
-                {"23 November","17 December"},
-                {"18 December", "18 January"},
-                {"19 January","15 February"},
-                {"16 February","11 March"},
-
-        };
-        for(int i=0; i< signs.length; i++){
-            Date startDate = new Date(String.format("%s/%s", dates[i][0], "2000"));
-            Date endDate = new Date(String.format("%s/%s", dates[i][1], "2000"));
-            if(date.getMonth() >= startDate.getMonth()  &&
-                    date.getMonth() <= endDate.getMonth()) return signs[i];
-
-        }
-        return "";
-    }
 }

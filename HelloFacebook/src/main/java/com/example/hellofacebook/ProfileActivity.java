@@ -9,11 +9,12 @@ import android.util.Log;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-public class MainActivity extends SingleFrameActivity {
+public class ProfileActivity extends SingleFrameActivity {
 
     @Override
     protected Fragment createFragment(){
-        return new FacebookMeFragment();
+        String userId = (String)getIntent().getSerializableExtra(FacebookProfileFragment.EXTRA_USER_ID);
+        return FacebookProfileFragment.newInstance(userId);
     }
 
     protected void onResume(){

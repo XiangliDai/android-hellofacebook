@@ -8,7 +8,7 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:orientation="vertical">
     <com.facebook.widget.ProfilePictureView
-        android:id="@+id/profile_pic"
+        android:id="@+id/friend_profile_pic"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:layout_gravity="center"
@@ -20,16 +20,13 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="15dp" >
-    android:layout_width=""
-    android:layout_height="" />
-    <TextView android:id="@+id/welcome_text"
+        android:layout_width=""
+        android:layout_height="" />
+        <TextView android:id="@+id/friend_profile_info"
 
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
-   <Button android:id="@+id/get_friends_button"
-       android:text="See Friends"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content" />
-</LinearLayout>
+
+    </LinearLayout>
 </LinearLayout>
