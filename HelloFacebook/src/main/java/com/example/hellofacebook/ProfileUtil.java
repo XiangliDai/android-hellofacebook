@@ -26,19 +26,20 @@ public class ProfileUtil {
         try{
             // Example: typed access (name)
             // - no special permissions required
-            userInfo.append(String.format("Name: %s\n\n", user.getName()));
+            userInfo.append(String.format("Name: %s\n", user.getName()));
             if( user.getProperty("gender")!= null){
-            userInfo.append(String.format("Gender: %s\n\n", user.getProperty("gender").toString()));
+             userInfo.append(String.format("Gender: %s\n", user.getProperty("gender").toString()));
             }
             if( user.getProperty("relationship_status")!= null){
-                userInfo.append(String.format("Status: %s\n\n", user.getProperty("relationship_status").toString()));
+              userInfo.append(String.format("Status: %s\n", user.getProperty("relationship_status").toString()));
             }
 
             if(user.getBirthday() != null){
                 String bDay = user.getBirthday().toString();
                 Date birthday =  new Date(String.format("%s/%s/%s", bDay.split("/")[0], bDay.split("/")[1], "2000"));
-                userInfo.append(String.format("Zodiac: %s\n\n", getZodiac(birthday)));
+                userInfo.append(String.format("Zodiac: %s\n", getZodiac(birthday)));
             }
+            userInfo.append(String.format("\n"));
             // Example: partially typed access, to location field,
             // name key (location)
             // - requires user_location permission
@@ -63,25 +64,23 @@ public class ProfileUtil {
                 userInfo.append(String.format("Education: \n"));
                 if (educations.length() > 0) {
                     for (int i=0; i < educations.length(); i++) {
-                    JSONObject education = educations.optJSONObject(i);
-                    // Add the language name to a list. Use JSON
-                    // methods to get access to the name field.
-                    JSONObject school = education.getJSONObject("school");
-                    userInfo.append(String.format("  %s: %s\n",education.get("type"),  school.get("name")));
-
-                }
-
-                userInfo.append(String.format("\n"));
+                        JSONObject education = educations.optJSONObject(i);
+                        // Add the language name to a list. Use JSON
+                        // methods to get access to the name field.
+                        JSONObject school = education.getJSONObject("school");
+                        userInfo.append(String.format("  %s: %s\n",education.get("type"),  school.get("name")));
+                    }
+                    userInfo.append(String.format("\n"));
                 }
             }
             // Example: partially typed access, to location field,
             // name key (location)
             // - requires user_location permission
             if( user.getLocation() != null)
-                userInfo.append(String.format("Location: %s\n\n", user.getLocation().getProperty("name")));
+                userInfo.append(String.format("Location: %s\n", user.getLocation().getProperty("name")));
 
             if(user.getProperty("hometown") != null)
-                userInfo.append(String.format("Hometown: %s\n\n", ((JSONObject)user.getProperty("hometown")).optString("name")));
+                userInfo.append(String.format("Hometown: %s\n", ((JSONObject)user.getProperty("hometown")).optString("name")));
             // Example: access via property name (locale)
             // - no special permissions required
            // userInfo.append(String.format("Locale: %s\n\n",
@@ -99,7 +98,7 @@ public class ProfileUtil {
                         // methods to get access to the name field.
                         languageNames.add(language.optString("name"));
                     }
-                    userInfo.append(String.format("Languages: %s\n\n", languageNames.toString()));
+                    userInfo.append(String.format("Languages: %s\n", languageNames.toString()));
                 }
             }
             return userInfo.toString();
