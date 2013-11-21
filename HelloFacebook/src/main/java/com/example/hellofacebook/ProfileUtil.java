@@ -48,14 +48,31 @@ public class ProfileUtil {
                 JSONObject work = works.optJSONObject(0);
                 userInfo.append(String.format("Work: \n"));
                 if(work.has("employer")){
-                JSONObject employer = (JSONObject)work.get("employer");
+                    JSONObject employer = (JSONObject)work.get("employer");
                     userInfo.append(String.format("  at: %s\n",  employer.get("name")));
                 }
                 if(work.has("position")){
                     JSONObject position = (JSONObject)work.get("position");
                     userInfo.append(String.format("  as: %s\n",  position.get("name")));
                 }
-                userInfo.append(String.format("\n\n"));
+                userInfo.append(String.format("\n"));
+            }
+
+            if(user.getProperty("education") != null){
+                JSONArray educations = (JSONArray)user.getProperty("education");
+                userInfo.append(String.format("Education: \n"));
+                if (educations.length() > 0) {
+                    for (int i=0; i < educations.length(); i++) {
+                    JSONObject education = educations.optJSONObject(i);
+                    // Add the language name to a list. Use JSON
+                    // methods to get access to the name field.
+                    JSONObject school = education.getJSONObject("school");
+                    userInfo.append(String.format("  %s: %s\n",education.get("type"),  school.get("name")));
+
+                }
+
+                userInfo.append(String.format("\n"));
+                }
             }
             // Example: partially typed access, to location field,
             // name key (location)

@@ -25,8 +25,6 @@ import com.facebook.HttpMethod;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
-import com.facebook.android.Facebook;
-import com.facebook.model.GraphObject;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.ProfilePictureView;
 
@@ -45,7 +43,6 @@ public  class FacebookProfileFragment extends Fragment {
     private static final String DIALOG_PUBLISHER = "Post";
     public static final String EXTRA_USER_ID = "user_id";
     private String userId;
-    private Facebook mFacebook;
 
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -156,17 +153,12 @@ public  class FacebookProfileFragment extends Fragment {
                     new Request.Callback() {
                         public void onCompleted(Response response) {
                             JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
-                            graphUser = convertJSONObjectToGraphUser(graphResponse);
+                            graphUser = new ProfileUtil().convertJSONObjectToGraphUser(graphResponse);
                             updateUI();
                         }
                     }
             ).executeAsync();
         }
-    }
-
-    private GraphUser convertJSONObjectToGraphUser(JSONObject graphResponse) {
-        GraphUser user = GraphObject.Factory.create(graphResponse, GraphUser.class);
-        return user;
     }
 
     private void showPublisherDialog(){

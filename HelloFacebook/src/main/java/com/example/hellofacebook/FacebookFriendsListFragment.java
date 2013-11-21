@@ -1,12 +1,16 @@
 package com.example.hellofacebook;
 
+import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.NavUtils;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,19 +55,25 @@ public class FacebookFriendsListFragment extends ListFragment {
         }
         return rootView;
     }
+
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         setHasOptionsMenu(true);
-        userId  = (String)getArguments().getSerializable(FacebookProfileFragment.EXTRA_USER_ID);
-        if(userId == null)
-            getFacebookFriends();
-        else
-            getFacebookFriendsForUser();
-        mUsers = new ArrayList<GraphUser>();
-        FriendsAdapter adapter = new FriendsAdapter(mUsers);
-        setListAdapter(adapter);
+        Intent intent = getActivity().getIntent();
+        if (!intent.ACTION_SEARCH.equals(intent.getAction())) {
+            FriendsListManager.get(getActivity()).removeAllUsers();
+            userId  = (String)getArguments().getSerializable(FacebookProfileFragment.EXTRA_USER_ID);
+            if(userId == null)
+                getFacebookFriends();
+            else
+                getFacebookFriendsForUser();
+
+            mUsers = new ArrayList<GraphUser>();
+            FriendsAdapter adapter = new FriendsAdapter(mUsers);
+            setListAdapter(adapter);
+        }
     }
 
     public static FacebookFriendsListFragment newInstance(String userId){
@@ -79,7 +89,6 @@ public class FacebookFriendsListFragment extends ListFragment {
     public void onListItemClick(ListView l, View v, int position, long id) {
         GraphUser user = ((FriendsAdapter)getListAdapter()).getItem(position);
         Intent i = new Intent(getActivity(), ProfileActivity.class);
-
         i.putExtra(FacebookProfileFragment.EXTRA_USER_ID, user.getId());
         startActivity(i);
         Log.d(TAG, user.getId().toString() + " is clicked");
@@ -92,11 +101,28 @@ public class FacebookFriendsListFragment extends ListFragment {
                 if(NavUtils.getParentActivityName(getActivity()) != null)
                     NavUtils.navigateUpFromSameTask(getActivity());
                 return true;
+            case R.id.action_search:
+                getActivity().onSearchRequested();
+                return true ;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+        super.onCreateOptionsMenu(menu,inflater);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
+            inflater.inflate(R.menu.friend_search, menu);
+            MenuItem searchItem = menu.findItem(R.id.action_search);
+            SearchManager searchManager = (SearchManager) getActivity().getSystemService(getActivity().SEARCH_SERVICE);
+
+            SearchView searchView = (SearchView) searchItem.getActionView();
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
+            searchView.setIconifiedByDefault(false); // Do not iconify the widget; expand it by default
+
+        }
+    }
 
     @Override
     public void onPause(){
@@ -116,9 +142,8 @@ public class FacebookFriendsListFragment extends ListFragment {
                     if (error != null) {
                         Log.e(TAG, error.toString());
                     } else if (session == Session.getActiveSession()) {
-                        mUsers.addAll (users);
-                        FriendsAdapter adapter = (FriendsAdapter)getListAdapter();
-                        adapter.notifyDataSetChanged();
+                        mUsers.addAll(FriendsListManager.get(getActivity()).insertFriends(users));
+                        notifyDataSetChanged();
                     }
                 }
             });
@@ -141,20 +166,15 @@ public class FacebookFriendsListFragment extends ListFragment {
                             JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
                             try {
                                 JSONArray users = (JSONArray)graphResponse.get("data");
+                                ArrayList<GraphUser> userList = new ArrayList<GraphUser>();
                                 if (users.length() > 0) {
-                                //    ArrayList<GraphUser> graphUsers = new ArrayList<GraphUser> ();
                                     for (int i=0; i < users.length(); i++) {
                                         JSONObject user = users.optJSONObject(i);
-                                        // Add the language name to a list. Use JSON
-                                        // methods to get access to the name field.
-                                      // GraphUser graphUser =  new ProfileUtil().convertJSONObjectToGraphUser(user);
-                                        mUsers.add(new ProfileUtil().convertJSONObjectToGraphUser(user));
+                                        userList.add(new ProfileUtil().convertJSONObjectToGraphUser(user));
                                     }
-                                  //  mUsers = graphUsers;
-                                    FriendsAdapter adapter = (FriendsAdapter)getListAdapter();
-                                    adapter.notifyDataSetChanged();
+                                    mUsers.addAll(FriendsListManager.get(getActivity()).insertFriends(userList));
+                                    notifyDataSetChanged();
                                 }
-
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
@@ -164,6 +184,29 @@ public class FacebookFriendsListFragment extends ListFragment {
         }
     }
 
+    public void doQuery(String query) {
+        mUsers = new ArrayList<GraphUser>();
+        FriendsAdapter adapter = new FriendsAdapter(mUsers);
+        setListAdapter(adapter);
+        try {
+            if(query.length() == 0)
+                mUsers.addAll(FriendsListManager.get(getActivity()).getAllUsers());
+            else
+                mUsers.addAll(FriendsListManager.get(getActivity()).getUsersBySearch(query));
+
+        } catch (JSONException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        notifyDataSetChanged();
+    }
+
+    private void notifyDataSetChanged(){
+        FriendsAdapter adapter = (FriendsAdapter)getListAdapter();
+        adapter.notifyDataSetChanged();
+
+       //FriendsAdapter adapter = new FriendsAdapter(mUsers);
+        //setListAdapter(adapter);
+    }
     private class FriendsAdapter extends ArrayAdapter<GraphUser>{
 
         public FriendsAdapter(ArrayList<GraphUser> users){
@@ -185,6 +228,7 @@ public class FacebookFriendsListFragment extends ListFragment {
 
             return convertView;
         }
+
     }
 
 }
