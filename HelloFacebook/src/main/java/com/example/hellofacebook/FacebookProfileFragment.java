@@ -112,7 +112,6 @@ public  class FacebookProfileFragment extends Fragment {
         graphUser = null;
     }
 
-
     private void getFacebookProfile(String userId){
         final Session session = Session.getActiveSession();
         if (session.isOpened()) {
