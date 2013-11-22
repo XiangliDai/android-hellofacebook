@@ -21,14 +21,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.FacebookRequestError;
-import com.facebook.HttpMethod;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.ProfilePictureView;
-
-import org.json.JSONObject;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -43,15 +40,12 @@ public  class FacebookProfileFragment extends Fragment {
     private static final String DIALOG_PUBLISHER = "Post";
     public static final String EXTRA_USER_ID = "user_id";
     private String userId;
-
+    FacebookAPI<GraphUser> facebookAPI;
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         userId  = (String)getArguments().getSerializable(EXTRA_USER_ID);
-        if(userId == null)
-            getFacebookMeProfile();
-        else
-            getFacebookProfileForUser();
+        getFacebookProfile(userId);
 
     }
 
@@ -66,7 +60,6 @@ public  class FacebookProfileFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
         View rootView = inflater.inflate(R.layout.profile_fragment, container, false);
         userProfile = (TextView) rootView.findViewById(R.id.user_profile);
         profilePictureView = (ProfilePictureView) rootView.findViewById(R.id.profile_pic);
@@ -98,7 +91,6 @@ public  class FacebookProfileFragment extends Fragment {
             case R.id.menu_item_new_post:
                 showPublisherDialog();
                 return true;
-
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -120,44 +112,23 @@ public  class FacebookProfileFragment extends Fragment {
         graphUser = null;
     }
 
-    private void getFacebookMeProfile(){
-        Session session = Session.getActiveSession();
-        if (session.isOpened()) {
-         // make request to the /me API to get current logged in user information
-         Request meRequest = Request.newMeRequest(session, new Request.GraphUserCallback() {
-             @Override
-             public void onCompleted(GraphUser user, Response response) {
-                 FacebookRequestError error = response.getError();
-                 if (error != null) {
-                     Log.e(TAG, error.toString());
-                 }
-                 else {
-                     graphUser = user;
-                     updateUI();
-                 }
-             }
-         });
-            meRequest.executeAsync();
-        }
-    }
 
-    private void getFacebookProfileForUser(){
-        Session session = Session.getActiveSession();
+    private void getFacebookProfile(String userId){
+        final Session session = Session.getActiveSession();
         if (session.isOpened()) {
-            /* make the API call*/
-            new Request(
-                    session,
-                    "/"+ userId,
-                    null,
-                    HttpMethod.GET,
-                    new Request.Callback() {
-                        public void onCompleted(Response response) {
-                            JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
-                            graphUser = new ProfileUtil().convertJSONObjectToGraphUser(graphResponse);
-                            updateUI();
-                        }
+                facebookAPI = new  FacebookAPI<GraphUser>();
+                facebookAPI.setListener(new FacebookAPI.Listener<GraphUser>() {
+                    @Override
+                    public void onPayloadDownloaded(GraphUser user, Response response) {
+                        graphUser = user;
+                        updateUI();
                     }
-            ).executeAsync();
+                });
+            if(userId == null)
+                facebookAPI.getMyProfile(session);
+            else
+                facebookAPI.getProfileForUser(session,userId);
+
         }
     }
 
@@ -182,7 +153,7 @@ public  class FacebookProfileFragment extends Fragment {
     public void postToWall(String message){
         Session session = Session.getActiveSession();
         if(session!=null && session.isOpened()){
-        Request postRequest = Request.newStatusUpdateRequest(session, message, new Request.Callback() {
+        Request.newStatusUpdateRequest(session, message, new Request.Callback() {
             @Override
             public void onCompleted(Response response) {
                 FacebookRequestError error = response.getError();
@@ -193,8 +164,7 @@ public  class FacebookProfileFragment extends Fragment {
                     showToast(response.toString());
                 }
             }
-        });
-            postRequest.executeAsync();
+        }).executeAsync();
         }
     }
 

@@ -18,17 +18,12 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.facebook.FacebookRequestError;
-import com.facebook.HttpMethod;
-import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.ProfilePictureView;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,9 +36,8 @@ public class FacebookFriendsListFragment extends ListFragment {
     private ArrayList<GraphUser> mUsers;
     private ProfilePictureView profilePictureView;
     private String userId;
-    /**
-     * A placeholder fragment containing a simple view.
-     */
+    FacebookAPI<List<GraphUser>> facebookAPI;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -65,11 +59,7 @@ public class FacebookFriendsListFragment extends ListFragment {
         if (!intent.ACTION_SEARCH.equals(intent.getAction())) {
             FriendsListManager.get(getActivity()).removeAllUsers();
             userId  = (String)getArguments().getSerializable(FacebookProfileFragment.EXTRA_USER_ID);
-            if(userId == null)
-                getFacebookFriends();
-            else
-                getFacebookFriendsForUser();
-
+            getFacebookFriends(userId);
             mUsers = new ArrayList<GraphUser>();
             FriendsAdapter adapter = new FriendsAdapter(mUsers);
             setListAdapter(adapter);
@@ -120,7 +110,6 @@ public class FacebookFriendsListFragment extends ListFragment {
             SearchView searchView = (SearchView) searchItem.getActionView();
             searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
             searchView.setIconifiedByDefault(false); // Do not iconify the widget; expand it by default
-
         }
     }
 
@@ -130,57 +119,23 @@ public class FacebookFriendsListFragment extends ListFragment {
         mUsers = null;
     }
 
-    private void getFacebookFriends(){
-        // start Facebook Login
+
+    private void getFacebookFriends(String userId){
         final Session session = Session.getActiveSession();
-        if (session != null && session.isOpened()) {
-            // make request to the /friends API
-            Request friendsRequestRequest = Request.newMyFriendsRequest(session, new Request.GraphUserListCallback() {
+        if (session.isOpened()) {
+            facebookAPI = new  FacebookAPI<List<GraphUser>>();
+            facebookAPI.setListener(new FacebookAPI.Listener<List<GraphUser>>() {
                 @Override
-                public void onCompleted(List<GraphUser> users, Response response) {
-                    FacebookRequestError error = response.getError();
-                    if (error != null) {
-                        Log.e(TAG, error.toString());
-                    } else if (session == Session.getActiveSession()) {
-                        mUsers.addAll(FriendsListManager.get(getActivity()).insertFriends(users));
-                        notifyDataSetChanged();
-                    }
+                public void onPayloadDownloaded(List<GraphUser> users, Response response) {
+                    mUsers.addAll(FriendsListManager.get(getActivity()).insertFriends(users));
+                    notifyDataSetChanged();
                 }
             });
-            friendsRequestRequest.executeAsync();
-        }
-    }
+            if(userId == null)
+                facebookAPI.getMyFriends(session);
+            else
+                facebookAPI.getFriendsForUser(session,userId);
 
-
-    private void getFacebookFriendsForUser(){
-        Session session = Session.getActiveSession();
-        if (session.isOpened()) {
-            /* make the API call*/
-            new Request(
-                    session,
-                    "me/mutualfriends/"+ userId,
-                    null,
-                    HttpMethod.GET,
-                    new Request.Callback() {
-                        public void onCompleted(Response response) {
-                            JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
-                            try {
-                                JSONArray users = (JSONArray)graphResponse.get("data");
-                                ArrayList<GraphUser> userList = new ArrayList<GraphUser>();
-                                if (users.length() > 0) {
-                                    for (int i=0; i < users.length(); i++) {
-                                        JSONObject user = users.optJSONObject(i);
-                                        userList.add(new ProfileUtil().convertJSONObjectToGraphUser(user));
-                                    }
-                                    mUsers.addAll(FriendsListManager.get(getActivity()).insertFriends(userList));
-                                    notifyDataSetChanged();
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-            ).executeAsync();
         }
     }
 
@@ -203,10 +158,8 @@ public class FacebookFriendsListFragment extends ListFragment {
     private void notifyDataSetChanged(){
         FriendsAdapter adapter = (FriendsAdapter)getListAdapter();
         adapter.notifyDataSetChanged();
-
-       //FriendsAdapter adapter = new FriendsAdapter(mUsers);
-        //setListAdapter(adapter);
     }
+
     private class FriendsAdapter extends ArrayAdapter<GraphUser>{
 
         public FriendsAdapter(ArrayList<GraphUser> users){
