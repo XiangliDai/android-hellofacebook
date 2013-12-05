@@ -4,20 +4,21 @@ import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.ListFragment;
 import android.support.v4.app.NavUtils;
-import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.actionbarsherlock.app.SherlockListFragment;
+
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.widget.SearchView;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.model.GraphUser;
@@ -31,7 +32,7 @@ import java.util.List;
 /**
  * Created by xdai on 11/13/13.
  */
-public class FacebookFriendsListFragment extends ListFragment {
+public class FacebookFriendsListFragment extends SherlockListFragment {
     private static final String TAG = "FacebookFriendsListFragment";
     private ArrayList<GraphUser> mUsers;
     private ProfilePictureView profilePictureView;
@@ -106,10 +107,11 @@ public class FacebookFriendsListFragment extends ListFragment {
             inflater.inflate(R.menu.friend_search, menu);
             MenuItem searchItem = menu.findItem(R.id.action_search);
             SearchManager searchManager = (SearchManager) getActivity().getSystemService(getActivity().SEARCH_SERVICE);
-
             SearchView searchView = (SearchView) searchItem.getActionView();
-            searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
-            searchView.setIconifiedByDefault(false); // Do not iconify the widget; expand it by default
+            if (null != searchView ){
+                searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
+                searchView.setIconifiedByDefault(false);
+            }
         }
     }
 

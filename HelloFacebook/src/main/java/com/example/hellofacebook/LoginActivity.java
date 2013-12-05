@@ -1,6 +1,6 @@
 package com.example.hellofacebook;
 
-import android.support.v4.app.Fragment;
+import com.actionbarsherlock.app.SherlockFragment;
 
 /**
  * Created by xdai on 11/14/13.
@@ -8,7 +8,7 @@ import android.support.v4.app.Fragment;
 public class LoginActivity extends SingleFrameActivity {
 
     @Override
-    protected Fragment createFragment() {
+    protected SherlockFragment createFragment() {
         return new FacebookLoginFragment();
     }
 }

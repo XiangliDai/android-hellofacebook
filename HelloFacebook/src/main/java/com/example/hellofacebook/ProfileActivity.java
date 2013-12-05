@@ -3,16 +3,17 @@ package com.example.hellofacebook;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.support.v4.app.Fragment;
 import android.util.Base64;
 import android.util.Log;
+
+import com.actionbarsherlock.app.SherlockFragment;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 public class ProfileActivity extends SingleFrameActivity {
 
     @Override
-    protected Fragment createFragment(){
+    protected SherlockFragment createFragment(){
         String userId = (String)getIntent().getSerializableExtra(FacebookProfileFragment.EXTRA_USER_ID);
         return FacebookProfileFragment.newInstance(userId);
     }

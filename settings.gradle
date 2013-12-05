@@ -1,1 +1,1 @@
-include  ':libraries:facebook', ':HelloFacebook'
+include  ':libraries:facebook',':libraries:actionbarsherlock', ':HelloFacebook'

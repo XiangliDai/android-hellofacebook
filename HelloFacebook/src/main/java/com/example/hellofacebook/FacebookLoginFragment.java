@@ -2,12 +2,12 @@ package com.example.hellofacebook;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.actionbarsherlock.app.SherlockFragment;
 import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
@@ -16,7 +16,7 @@ import com.facebook.widget.LoginButton;
 /**
  * Created by xdai on 11/14/13.
  */
-public class FacebookLoginFragment extends Fragment {
+public class FacebookLoginFragment extends SherlockFragment {
     private boolean isResumed = false;
     private UiLifecycleHelper uiHelper;
     private final static String TAG = "FacebookLoginFragment";

@@ -7,19 +7,19 @@ package com.example.hellofacebook;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import com.facebook.FacebookRequestError;
 import com.facebook.Request;
 import com.facebook.Response;
@@ -30,7 +30,7 @@ import com.facebook.widget.ProfilePictureView;
 /**
  * A placeholder fragment containing a simple view.
  */
-public  class FacebookProfileFragment extends Fragment {
+public  class FacebookProfileFragment extends SherlockFragment {
     private static final String TAG = "FacebookProfileFragment";
     private ProfilePictureView profilePictureView;
     private TextView userProfile;
@@ -79,6 +79,35 @@ public  class FacebookProfileFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+
+        //MenuInflater inflater = getSherlockActivity().getSupportMenuInflater();
+
+        inflater.inflate(R.menu.main, menu);
+
+        //return true;
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        // Handle item selection
+
+        switch (item.getItemId()) {
+
+            case R.id.menu_item_new_post:
+                showPublisherDialog();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+
+        }
+
+    }
+
+    /*
     @Override //Add action bar
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
         super.onCreateOptionsMenu(menu,inflater);
@@ -95,7 +124,7 @@ public  class FacebookProfileFragment extends Fragment {
                 return super.onOptionsItemSelected(item);
         }
     }
-
+*/
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         if(resultCode != Activity.RESULT_OK) return;

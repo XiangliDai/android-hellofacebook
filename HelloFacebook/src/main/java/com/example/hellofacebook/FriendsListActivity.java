@@ -2,14 +2,16 @@ package com.example.hellofacebook;
 
 import android.app.SearchManager;
 import android.content.Intent;
-import android.support.v4.app.Fragment;
 
-public class FriendsListActivity extends SingleFrameActivity {
+import com.actionbarsherlock.app.SherlockListFragment;
+
+public class FriendsListActivity extends SingleListFrameActivity {
 
     @Override
-    protected Fragment createFragment(){
+    protected SherlockListFragment createFragment(){
         String userId = (String)getIntent().getSerializableExtra(FacebookProfileFragment.EXTRA_USER_ID);
         return FacebookFriendsListFragment.newInstance(userId);
+        //return new SherlockFragment();
     }
 
     @Override

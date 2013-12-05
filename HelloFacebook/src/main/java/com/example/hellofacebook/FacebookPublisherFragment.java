@@ -6,14 +6,15 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
 import android.view.View;
 import android.widget.EditText;
+
+import com.actionbarsherlock.app.SherlockDialogFragment;
 
 /**
  * Created by xdai on 11/15/13.
  */
-public class FacebookPublisherFragment extends DialogFragment {
+public class FacebookPublisherFragment extends SherlockDialogFragment {
     public static String EXTRA_MESSAGE = "test message";
     public static String EXTRA_TITLE = "title";
     private EditText messageText ;
