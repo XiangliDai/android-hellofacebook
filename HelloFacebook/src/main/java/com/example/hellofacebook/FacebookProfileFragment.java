@@ -81,50 +81,22 @@ public  class FacebookProfileFragment extends SherlockFragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-
-        //MenuInflater inflater = getSherlockActivity().getSupportMenuInflater();
-
-        inflater.inflate(R.menu.main, menu);
-
-        //return true;
-
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        // Handle item selection
-
-        switch (item.getItemId()) {
-
-            case R.id.menu_item_new_post:
-                showPublisherDialog();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-
-        }
-
-    }
-
-    /*
-    @Override //Add action bar
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
         super.onCreateOptionsMenu(menu,inflater);
         inflater.inflate(R.menu.main, menu);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        switch (item.getItemId()){
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
             case R.id.menu_item_new_post:
                 showPublisherDialog();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+
     }
-*/
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         if(resultCode != Activity.RESULT_OK) return;

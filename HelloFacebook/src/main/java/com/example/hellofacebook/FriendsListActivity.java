@@ -11,7 +11,6 @@ public class FriendsListActivity extends SingleListFrameActivity {
     protected SherlockListFragment createFragment(){
         String userId = (String)getIntent().getSerializableExtra(FacebookProfileFragment.EXTRA_USER_ID);
         return FacebookFriendsListFragment.newInstance(userId);
-        //return new SherlockFragment();
     }
 
     @Override
