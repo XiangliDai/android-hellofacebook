@@ -79,10 +79,23 @@ public class FacebookFriendsListFragment extends SherlockListFragment {
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         GraphUser user = ((FriendsAdapter)getListAdapter()).getItem(position);
-        Intent i = new Intent(getActivity(), ProfileActivity.class);
+        /*Intent i = new Intent(getActivity(), ProfileActivity.class);
         i.putExtra(FacebookProfileFragment.EXTRA_USER_ID, user.getId());
         startActivity(i);
+        */
+        sendResult(getActivity().RESULT_OK, user.getId());
         Log.d(TAG, user.getId().toString() + " is clicked");
+    }
+
+    private void sendResult(int resultCode, String userId){
+        //if(getTargetFragment() == null) return;
+
+        Intent i = new Intent();
+        i.putExtra(FacebookProfileFragment.EXTRA_USER_ID, userId);
+
+        getActivity().setResult(resultCode, i);
+       getActivity().finish();
+
     }
 
     @Override

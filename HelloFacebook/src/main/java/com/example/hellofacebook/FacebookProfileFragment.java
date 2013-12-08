@@ -37,6 +37,7 @@ public  class FacebookProfileFragment extends SherlockFragment {
     private Button viewFriendsButton;
     private GraphUser graphUser;
     private static final int REQUEST_PUBLISHER = 0;
+    private static final int REQUEST_FRIENDS = 1;
     private static final String DIALOG_PUBLISHER = "Post";
     public static final String EXTRA_USER_ID = "user_id";
     private String userId;
@@ -64,21 +65,27 @@ public  class FacebookProfileFragment extends SherlockFragment {
         userProfile = (TextView) rootView.findViewById(R.id.user_profile);
         profilePictureView = (ProfilePictureView) rootView.findViewById(R.id.profile_pic);
         profilePictureView.setCropped(true);
-        profilePictureView.setVisibility(View.INVISIBLE);
         viewFriendsButton = (Button)rootView.findViewById(R.id.get_friends_button);
-        viewFriendsButton.setVisibility(View.INVISIBLE);
+        initialUI();
         viewFriendsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent();
                 intent.setClass(getActivity(), FriendsListActivity.class);
                 intent.putExtra(EXTRA_USER_ID, userId);
-                startActivity(intent);
+                startActivityForResult(intent, REQUEST_FRIENDS);
+                initialUI();
+
             }
         });
         return rootView;
     }
 
+    private void initialUI(){
+        profilePictureView.setVisibility(View.INVISIBLE);
+        viewFriendsButton.setVisibility(View.INVISIBLE);
+        userProfile.setText("");
+    }
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu,inflater);
@@ -104,6 +111,11 @@ public  class FacebookProfileFragment extends SherlockFragment {
             String message = data.getStringExtra(FacebookPublisherFragment.EXTRA_MESSAGE);
             Log.d(TAG, message);
             postToWall(message);
+        }
+        else if(requestCode == REQUEST_FRIENDS){
+            userId = data.getStringExtra(EXTRA_USER_ID);
+
+             getFacebookProfile(userId);
         }
     }
 
