@@ -14,18 +14,14 @@ public class DummyTest {
 
     @Test
     public void testSomething() throws Exception {
-
-//Let's import Mockito statically so that the code looks clearer
-
-
-//mock creation
+        //mock creation
         List mockedList = mock(List.class);
 
-//using mock object
+        //using mock object
         mockedList.add("one");
         mockedList.clear();
 
-//verification
+        //verification
         verify(mockedList).add("one");
         verify(mockedList).clear();
 
