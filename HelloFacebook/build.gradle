@@ -1,14 +1,19 @@
+
 buildscript {
-    repositories {
-        mavenCentral()
-    }
     dependencies {
+
+        repositories {
+            mavenCentral()
+            maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+        }
+
         classpath 'com.android.tools.build:gradle:0.6.+'
-        classpath 'com.squareup.gradle:gradle-android-test-plugin:0.9.+'
+        classpath 'com.squareup.gradle:gradle-android-test-plugin:0.9.1-SNAPSHOT'
     }
 }
-apply plugin: 'android'
 
+apply plugin: 'android'
+apply plugin: 'android-test'
 repositories {
     mavenCentral()
 }
@@ -18,13 +23,50 @@ android {
     buildToolsVersion '18.1.0'
 
     defaultConfig {
-        minSdkVersion 9
+        minSdkVersion 14
         targetSdkVersion 18
+    }
+
+    sourceSets {
+        testLocal {
+            java.srcDir file('src/test/java')
+            resources.srcDir file('src/test/resources')
+        }
+    }
+    // IDE only requirement
+    sourceSets {
+        instrumentTest.setRoot('src/test')
+    }
+
+
+    productFlavors {
+        paid {
+            packageName "com.example.hellofacebook"
+            buildConfig "public final static boolean isFullVersion = true;"
+            versionCode 2
+            versionName "1.0.0"
+            //signingConfig signingConfigs.paidConfing
+        }
+        free {
+            packageName "com.example.hellofacebook"
+            buildConfig "public final static boolean isFullVersion = false;"
+            versionCode 2
+            versionName "1.0.0"
+            //signingConfig signingConfigs.freeConfing
+        }
     }
 }
 
 dependencies {
+
+    repositories {
+        mavenCentral()
+    }
     compile 'com.android.support:support-v4:18.0.0'
     compile project(':libraries:actionbarsherlock')
     compile project(':libraries:facebook')
+
+    testCompile 'junit:junit:4.10'
+    testCompile 'org.robolectric:robolectric:2.1.+'
+    testCompile 'com.squareup:fest-android:1.0.+'
 }
