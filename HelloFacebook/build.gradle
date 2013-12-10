@@ -27,12 +27,6 @@ android {
         targetSdkVersion 18
     }
 
-    sourceSets {
-        testLocal {
-            java.srcDir file('src/test/java')
-            resources.srcDir file('src/test/resources')
-        }
-    }
     // IDE only requirement
     sourceSets {
         instrumentTest.setRoot('src/test')
@@ -69,4 +63,7 @@ dependencies {
     testCompile 'junit:junit:4.10'
     testCompile 'org.robolectric:robolectric:2.1.+'
     testCompile 'com.squareup:fest-android:1.0.+'
+
+    testCompile 'org.mockito:mockito-all:1.9.5'
+    testCompile 'pl.pragmatists:JUnitParams:1.0.2'
 }

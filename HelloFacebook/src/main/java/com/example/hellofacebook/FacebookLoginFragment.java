@@ -84,6 +84,7 @@ public class FacebookLoginFragment extends SherlockFragment {
         }
     }
 
+
     private Session.StatusCallback callback =  new Session.StatusCallback() {
                 @Override
                 public void call(Session session, SessionState state, Exception exception) {
