@@ -7,7 +7,7 @@ buildscript {
             maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
         }
 
-        classpath 'com.android.tools.build:gradle:0.6.+'
+        classpath 'com.android.tools.build:gradle:0.7.+'
         classpath 'com.squareup.gradle:gradle-android-test-plugin:0.9.1-SNAPSHOT'
     }
 }
@@ -20,7 +20,7 @@ repositories {
 
 android {
     compileSdkVersion 18
-    buildToolsVersion '18.1.0'
+    buildToolsVersion '19.0.0'
 
     defaultConfig {
         minSdkVersion 14
@@ -35,18 +35,11 @@ android {
 
     productFlavors {
         paid {
-            packageName "com.example.hellofacebook"
-            buildConfig "public final static boolean isFullVersion = true;"
-            versionCode 2
-            versionName "1.0.0"
-            //signingConfig signingConfigs.paidConfing
+            buildConfigField "boolean", "PRODUCTION", "true";
         }
         free {
-            packageName "com.example.hellofacebook"
-            buildConfig "public final static boolean isFullVersion = false;"
-            versionCode 2
-            versionName "1.0.0"
-            //signingConfig signingConfigs.freeConfing
+            packageName = 'com.example.hellofacebook.nightly'
+            buildConfigField "boolean", "PRODUCTION", "false";
         }
     }
 }
@@ -66,4 +59,10 @@ dependencies {
 
     testCompile 'org.mockito:mockito-all:1.9.5'
     testCompile 'pl.pragmatists:JUnitParams:1.0.2'
+
+    instrumentTestCompile 'junit:junit:4.11'
+    instrumentTestCompile 'org.robolectric:robolectric:2.1.+'
+    instrumentTestCompile 'com.squareup:fest-android:1.0.+'
+    instrumentTestCompile 'org.mockito:mockito-all:1.9.5'
+    instrumentTestCompile 'pl.pragmatists:JUnitParams:1.0.2'
 }
